@@ -1,6 +1,6 @@
 # Psef
 ## Portable scholarly edition format (psef) archiving service
-This readme describes the *final* functionality of the Psef service. As yet only a few parts are written, but functionality will be gradually added to in the near future. This is a key technology in Ecdosis and will be supported. Psef is written in the form of a Java web application, for inclusion in Tomcat. But it can also be run as a standalone web service using Jetty.
+This readme describes the *final* functionality of the Psef service. As yet only a few parts are written, but functionality will be gradually added in the near future. This is a key technology in Ecdosis and will be supported. Psef is written in the form of a Java web application, for inclusion in Tomcat. But it can also be run as a standalone web service using Jetty.
 
 ## Rationale
 Digital scholarly editions are notiously non-interoperable. They usually consist of source documents in XML, XSLT scripts, CSS stylesheets, javascript and typically run within a content management system. Any software written for them is usually customised from scratch for each project. Functionality is split between the client and server halves of the edition, making archiving impossible. Psef tries to change all that by creating a portable, interoperable and archivable format that preserves the entire website as an archive that can be viewed, and is fully functional in any modern web-browser.
