@@ -95,5 +95,5 @@ To obtain a psef archive just use any web-fetching program such as wget.
 The url of the service is: /psef/project?docid=language/author/work. 
 e.g.
 
-    wget -O nostromo.psef.tar.gz http://ecdosis.net/psef/project?docid=english/conrad/nostromo
+    wget -O nostromo.tar.gz http://ecdosis.net/psef/project?docid=english/conrad/nostromo
 
