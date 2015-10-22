@@ -37,6 +37,7 @@ import java.io.FileInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.utils.IOUtils;
@@ -49,6 +50,7 @@ public class ProjectGetHandler extends PsefGetHandler
 {
     String docid;
     File root;
+    static final int BUF_SIZE = 32768;
     private void writeUrlContents( String url, String path ) 
         throws PsefException
     {
@@ -102,28 +104,6 @@ public class ProjectGetHandler extends PsefGetHandler
             return twoPath.substring(onePath.length());
         else
             return twoPath;
-    }
-    /**
-     * Read an archive file as a byte array
-     * @param archive the file to read
-     * @return an array of bytes less than 2GB
-     * @throws PsefException 
-     */
-    byte[] readArchive( File archive ) throws PsefException
-    {
-        try
-        {
-            FileInputStream fis = new FileInputStream(archive);
-            int len = (int)archive.length();
-            byte[] data = new byte[len];
-            fis.read( data );
-            fis.close();
-            return data;
-        }
-        catch ( Exception e )
-        {
-            throw new PsefException(e);
-        }
     }
     /**
      * Add files to a tar.gz archive recursively
@@ -226,7 +206,15 @@ public class ProjectGetHandler extends PsefGetHandler
                 File archive = tarRoot();
                 response.setContentType("application/gzip");
                 ServletOutputStream sos = response.getOutputStream();
-                sos.write( readArchive(archive) );
+                byte[] buffer = new byte[BUF_SIZE];
+                FileInputStream fis = new FileInputStream(archive);
+                BufferedInputStream bis = new BufferedInputStream(fis,BUF_SIZE);
+                while ( bis.available() > 0 )
+                {
+                    int amt = bis.available();
+                    bis.read( buffer, 0, amt );
+                    sos.write( buffer, 0, amt );
+                }
             }
             else
                 throw new Exception("project doesn't have a site_url");
