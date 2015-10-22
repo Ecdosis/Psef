@@ -21,7 +21,7 @@ External resources are also saved within the archive and "frozen" in the state t
 Psef archives only assume a HTML5 compatible browser. No other software is needed.
 
 ### Archiving
-So long as browsers continue to support HTML (1992), Javascript (1995), JSON (2002) and CSS (1994), which they have done historically for a long time by supporting backwards-compatibility, Psef archives will continue to be readable. The fact is, digital scholary editions are not just the source files: they include the GUI functioanlity, the CMS web-pages, the stylesheets etc. It's everything, and to preserve just the non-interoperable sources doesn't save anything of interest. A future user would likely recode the source documents from scratch. But with Psef the edition can live on.
+So long as browsers continue to support HTML (1992), Javascript (1995), JSON (2002) and CSS (1994), which they have done historically for a long time by supporting backwards-compatibility, Psef archives will continue to be readable. The fact is, digital scholary editions are not just the source files: they include the GUI functioanlity, the CMS web-pages, the stylesheets etc. It's everything, and to preserve just the non-interoperable sources doesn't save anything of interest. A future user would likely recode the source documents and rewrite the program code from scratch. But with Psef the edition can live on in the form as originally designed.
 
 ### Sharing
 Psef archives can be stored on a USB stick, or transferred through online services like dropbox etc. The functionality is all in the Javascript and can be reused or downloaded afresh from the Ecdosis website.
