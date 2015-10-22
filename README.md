@@ -88,3 +88,12 @@ Psef archives can be stored on a USB stick, or transferred through
 online services like dropbox etc. The functionality is all in the 
 Javascript and can be reused, or if redesign or updating is needed, 
 downloaded afresh from the Ecdosis website.
+ 
+### Use
+
+To obtain a psef archive just use any web-fetching program such as wget. 
+The url of the service is: /psef/project?docid=language/author/work. 
+e.g.
+
+    wget -O nostromo.psef.tar.gz http://ecdosis.net/psef/project?docid=english/conrad/nostromo
+
