@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with Psef.  If not, see <http://www.gnu.org/licenses/>.
- *  (c) copyright Desmond Schmidt 2014
+ *  (c) copyright Desmond Schmidt 2015
  */
 package psef.handler;
 
@@ -43,7 +43,8 @@ public class PsefGetHandler extends GetHandler {
             String service = Utils.first(urn);
             if ( service.equals(Service.PROJECT) )
                 new ProjectGetHandler().handle(request,response,"");
-            throw new Exception("Unknown service "+service);
+            else
+                throw new Exception("Unknown service "+service);
         } catch (Exception e) {
             throw new PsefException(e);
         }

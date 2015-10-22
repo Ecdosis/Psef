@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with Psef.  If not, see <http://www.gnu.org/licenses/>.
- *  (c) copyright Desmond Schmidt 2014
+ *  (c) copyright Desmond Schmidt 2015
  */
 package psef.handler;
 
@@ -51,6 +51,12 @@ public class ProjectGetHandler extends PsefGetHandler
     String docid;
     File root;
     static final int BUF_SIZE = 32768;
+    /**
+     * Write the url contents to the archive
+     * @param url the url to fetch and write out
+     * @param path the path
+     * @throws PsefException 
+     */
     private void writeUrlContents( String url, String path ) 
         throws PsefException
     {
@@ -68,8 +74,10 @@ public class ProjectGetHandler extends PsefGetHandler
             if ( dst.exists() )
                 dst.delete();
             dst.createNewFile();
+            String html = new String(data,"UTF-8");
+            String filtered = new HTMLFilter(html,u.getPath(),u.getHost()).filter();
             FileOutputStream out = new FileOutputStream(dst);
-            out.write(data);
+            out.write(filtered.getBytes("UTF-8"));
             out.close();
         }
         catch ( Exception e )
@@ -86,7 +94,7 @@ public class ProjectGetHandler extends PsefGetHandler
     {
         String[] parts = siteU.getPath().split("/");
         for ( int i=parts.length-1;i>=0;i-- )
-            if ( parts[i].length()>0 )
+            if ( parts[i].length()>0 )  
                 return parts[i];
         return "";
     }
@@ -163,7 +171,7 @@ public class ProjectGetHandler extends PsefGetHandler
             tOut = new TarArchiveOutputStream(gzOut);
             addFilesToTarGz(tOut, root.getAbsolutePath(), "");
             return dst;  
-        } 
+        }
         finally
         {
             if ( tOut != null )
