@@ -3,10 +3,10 @@
 
 This readme describes the *final* functionality of the Psef service. As 
 yet only a few parts are written, but functionality will be gradually 
-added in the near future. This is a key technology in Ecdosis and will 
-be supported in future. Psef is written in the form of a Java web 
-application, for inclusion in Tomcat. But it can also be run as a 
-standalone web service using Jetty.
+added. This is a key technology in Ecdosis and will be supported in 
+future. Psef is written in the form of a Java web application, for 
+inclusion in Tomcat. But it can also be run as a standalone web service 
+using Jetty.
 
 ## Rationale
 
@@ -33,7 +33,7 @@ issues. A Psef archive is just a .tar.gz compressed file of a project
 stored in a single top-level directory. That directory stores only 
 static resources such as images, HTML, CSS, JSON, MVDs and javascript.
 
-These resources have local paths that are rewritten from their original 
+These resources have local paths that are based on their original 
 positions on the website or in the database. So a resource like 
 http://mysite.com/mycms/node/4 would become /static/node/4 at the top 
 level of the psef-archive. An ecdosis database resource such as 
@@ -47,21 +47,20 @@ modified path within the archive, instead of from the server. To restore
 the original javascript just replace .fetch with .get.
 
 All functionality provided by the original server code is replaced by 
-equivalent functionality in Javascript. So the services only provide get 
-and set functions. Since a Psef archive is read-only, no setting is 
-required. This is only possible because Psef archives use Ecdosis 
-services exclusively. The services are written to enable this kind of 
-archiving of the GUI functionality. As a result Psef *will not work* 
-with arbitrary websites.
+equivalent functionality in Javascript. So the services in an ecdosis 
+website only provide get and set functions. Since a Psef archive is 
+read-only, no setting is required. This simplifaction is only possible 
+because Psef archives use Ecdosis services exclusively, which are 
+written for this purpose. As a result Psef *will not work* with 
+arbitrary websites. External resources are also saved within the archive 
+and "frozen" in the state they were in when downloaded.
 
 ### Reading Psef archives
 
-External resources are also saved within the archive and "frozen" in the 
-state they were in when downloaded. Hence to view a Psef archive all 
-that one needs is to decompress it, then open the index.html file at the 
-root (corresponding to the home directory contents) in a modern 
-web-browser. All links work because they have been replaced with 
-equivalent links to files within the archive.
+To view a Psef archive all that one needs is to decompress it, then open 
+the index.html file at the root (corresponding to the home directory 
+contents) in a modern web-browser. All links work because they have been 
+replaced with equivalent links to files within the archive.
 
 ### Interoperability
 
@@ -77,13 +76,15 @@ to be readable. The fact is, digital scholary editions are not just the
 source files: they include the GUI functioanlity, the CMS web-pages, the 
 stylesheets etc. It's everything, and to preserve just the 
 non-interoperable sources doesn't save anything of interest. A future 
-user would likely recode the source documents and rewrite the program 
-code from scratch. But with Psef the edition can live on in the same 
-form as originally designed.
+user would likely choose to re-encode the source documents and rewrite 
+all the software from scratch. But with Psef the edition can live on in 
+the same form as originally designed. Even if in future these 
+technologies become obsolete the plain text files of each version will 
+survive.
 
 ### Sharing
 
 Psef archives can be stored on a USB stick, or transferred through 
 online services like dropbox etc. The functionality is all in the 
-Javascript and can be reused or downloaded afresh from the Ecdosis 
-website.
+Javascript and can be reused, or if redesign or updating is needed, 
+downloaded afresh from the Ecdosis website.
