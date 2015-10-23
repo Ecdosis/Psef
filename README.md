@@ -1,12 +1,11 @@
 # Psef
 ## Portable scholarly edition format (psef) archiving service
 
-This readme describes the *final* functionality of the Psef service. As 
-yet only a few parts are written, but functionality will be gradually 
-added. This is a key technology in Ecdosis and will be supported in 
-future. Psef is written in the form of a Java web application, for 
-inclusion in Tomcat. But it can also be run as a standalone web service 
-using Jetty.
+This readme describes the *final* projected functionality of the Psef 
+service. As yet only a few parts are written, but features will be 
+gradually added. Psef is written in the form of a Java web application, 
+for inclusion in Tomcat. But it can also be run as a standalone web 
+service using Jetty.
 
 ## Rationale
 
@@ -49,7 +48,7 @@ the original javascript just replace .fetch with .get.
 All functionality provided by the original server code is replaced by 
 equivalent functionality in Javascript. So the services in an ecdosis 
 website only provide get and set functions. Since a Psef archive is 
-read-only, no setting is required. This simplifaction is only possible 
+read-only, no setting is required. This simplification is only possible 
 because Psef archives use Ecdosis services exclusively, which are 
 written for this purpose. As a result Psef *will not work* with 
 arbitrary websites. External resources are also saved within the archive 
