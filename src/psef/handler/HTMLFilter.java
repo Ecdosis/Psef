@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with Psef.  If not, see <http://www.gnu.org/licenses/>.
- *  (c) copyright Desmond Schmidt 2014
+ *  (c) copyright Desmond Schmidt 2015
  */
 package psef.handler;
 import org.jsoup.Jsoup;
@@ -29,6 +29,9 @@ import java.io.File;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import psef.exception.PsefException;
+import org.jsoup.nodes.DataNode;
+import java.util.List;
+import java.util.StringTokenizer;
 /**
  * 
  */
@@ -51,7 +54,7 @@ public class HTMLFilter
      * @param path the local path to store it at
      * @throws PsefException 
      */
-    void downloadScript (URL url, String path ) throws PsefException
+    void downloadResource (URL url, String path ) throws PsefException
     {
         try
         {
@@ -75,9 +78,8 @@ public class HTMLFilter
             throw new PsefException(e);
         }
     }
-    public String filter() throws PsefException
+    private void filterScripts( Document doc ) throws PsefException
     {
-        Document doc = Jsoup.parse(src);
         Elements scripts = doc.getElementsByTag("script");
         for (Element script : scripts) 
         {
@@ -88,14 +90,15 @@ public class HTMLFilter
                 {
                     if ( !scriptSrc.startsWith("http") )
                         scriptSrc = "http://"+host+base+"/"+scriptSrc;
-                    URL url =  url = new URL(scriptSrc);
+                    URL url = new URL(scriptSrc);
                     if ( url.getPath().startsWith(base) )
                     {
                         String newPath = url.getPath().substring(base.length());
                         String newUrl = "scripts"+newPath;
                         script.attr("src",newUrl);
-                        downloadScript(url,newUrl);
+                        downloadResource(url,newUrl);
                     }
+                    // else what?
                 }
             }
             catch ( Exception e )
@@ -103,6 +106,58 @@ public class HTMLFilter
                 throw new PsefException(e);
             }
         }
+    }
+    /**
+     * See if the string starts with "@import"
+     * @param text the text to scan
+     * @return the offset of the first character after @import or 0
+     */
+    int readAtImport( String text )
+    {
+        if ( text.trim().startsWith("@import") )
+            return text.indexOf("@import")+7;
+        else
+            return 0;
+    }
+    private void filterStyles( Document doc ) throws PsefException
+    {
+         try
+         {
+             Elements styles = doc.getElementsByTag("style");
+             for (Element style : styles) 
+             {
+                List<DataNode> data = style.dataNodes();
+                String styleText = "";
+                StringBuilder sb = new StringBuilder();
+                for ( DataNode node : data )
+                {
+                    styleText = node.getWholeData();
+                    int pos = readAtImport(styleText);
+                    sb.append( "@import ");
+                    styleText = styleText.substring(pos);
+                    CSSUrl cssu = new CSSUrl( styleText );
+                    styleText = styleText.substring(cssu.getPos());
+                    cssu.revise(host, base, "styles" );
+                    URL u = new URL(cssu.getUrl(host,base));
+                    downloadResource(u,cssu.getLocalPath());
+                    sb.append( cssu.toString() );
+                    sb.append("\n");
+                    pos = readAtImport(styleText);
+               }
+               sb.append( styleText );
+               //style.( sb.toString() );
+            }
+         }
+         catch ( Exception e )
+         {
+             throw new PsefException( e );
+         }
+    }
+    public String filter() throws PsefException
+    {
+        Document doc = Jsoup.parse(src);
+        filterScripts( doc );
+        filterStyles( doc );
         // write converted dom to a string
         StringWriter sw = new StringWriter(src.length());
         PrintWriter writer = new PrintWriter(sw);
