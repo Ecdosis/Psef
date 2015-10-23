@@ -133,16 +133,20 @@ public class HTMLFilter
                 {
                     styleText = node.getWholeData();
                     int pos = readAtImport(styleText);
-                    sb.append( "@import ");
-                    styleText = styleText.substring(pos);
-                    CSSUrl cssu = new CSSUrl( styleText );
-                    styleText = styleText.substring(cssu.getPos());
-                    cssu.revise(host, base, "styles" );
-                    URL u = new URL(cssu.getUrl(host,base));
-                    downloadResource(u,cssu.getLocalPath());
-                    sb.append( cssu.toString() );
-                    sb.append("\n");
-                    pos = readAtImport(styleText);
+                    while ( pos > 0 )
+                    {
+                        sb.append( "@import ");
+                        styleText = styleText.substring(pos);
+                        CSSUrl cssu = new CSSUrl( styleText );
+                        styleText = styleText.substring(cssu.getPos());
+                        cssu.revise(host, base, "styles" );
+                        URL u = new URL(cssu.getUrl(host,base));
+                        downloadResource(u,cssu.getLocalPath());
+                        sb.append( cssu.toString() );
+                        sb.append("\n");
+                        pos = readAtImport(styleText);
+                    }
+                    node.setWholeData(sb.toString());
                }
                sb.append( styleText );
                //style.( sb.toString() );
