@@ -75,7 +75,7 @@ public class ProjectGetHandler extends PsefGetHandler
                 dst.delete();
             dst.createNewFile();
             String html = new String(data,"UTF-8");
-            String filtered = new HTMLFilter(html,u.getPath(),u.getHost()).filter();
+            String filtered = new HTMLFilter(root,html,u.getPath(),u.getHost()).filter();
             FileOutputStream out = new FileOutputStream(dst);
             out.write(filtered.getBytes("UTF-8"));
             out.close();
@@ -220,6 +220,7 @@ public class ProjectGetHandler extends PsefGetHandler
                 while ( bis.available() > 0 )
                 {
                     int amt = bis.available();
+                    amt = (amt>BUF_SIZE)?BUF_SIZE:amt;
                     bis.read( buffer, 0, amt );
                     sos.write( buffer, 0, amt );
                 }

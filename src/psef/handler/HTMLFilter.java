@@ -21,6 +21,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.net.URL;
+import java.net.URLConnection;
+import java.io.InputStream;
+import java.io.FileOutputStream;
+import calliope.core.Utils;
+import java.io.File;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import psef.exception.PsefException;
 /**
  * 
@@ -30,11 +37,43 @@ public class HTMLFilter
     String src;
     String base;
     String host;
-    HTMLFilter( String src, String base, String host )
+    File root;
+    HTMLFilter( File root, String src, String base, String host )
     {
         this.src = src;
         this.base = base;
         this.host = host;
+        this.root = root;
+    }
+    /**
+     * Download a remote file and save it locally
+     * @param url the url to fetch it from
+     * @param path the local path to store it at
+     * @throws PsefException 
+     */
+    void downloadScript (URL url, String path ) throws PsefException
+    {
+        try
+        {
+            URLConnection connection = url.openConnection();
+            InputStream is = connection.getInputStream();
+            byte[] data = Utils.readStream(is);
+            File dst = new File( root, path );
+            if ( !dst.exists() )
+            {
+                File parent = dst.getParentFile();
+                if ( !parent.exists() )
+                    parent.mkdirs();
+                dst.createNewFile();
+                FileOutputStream out = new FileOutputStream(dst);
+                out.write(data);
+                out.close();
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new PsefException(e);
+        }
     }
     public String filter() throws PsefException
     {
@@ -50,7 +89,13 @@ public class HTMLFilter
                     if ( !scriptSrc.startsWith("http") )
                         scriptSrc = "http://"+host+base+"/"+scriptSrc;
                     URL url =  url = new URL(scriptSrc);
-                    System.out.println(url.getPath());
+                    if ( url.getPath().startsWith(base) )
+                    {
+                        String newPath = url.getPath().substring(base.length());
+                        String newUrl = "scripts"+newPath;
+                        script.attr("src",newUrl);
+                        downloadScript(url,newUrl);
+                    }
                 }
             }
             catch ( Exception e )
@@ -58,6 +103,12 @@ public class HTMLFilter
                 throw new PsefException(e);
             }
         }
-        return src;
+        // write converted dom to a string
+        StringWriter sw = new StringWriter(src.length());
+        PrintWriter writer = new PrintWriter(sw);
+        writer.write( doc.html() ) ;
+        writer.flush();
+        writer.close(); 
+        return sw.toString();
     }
 }
