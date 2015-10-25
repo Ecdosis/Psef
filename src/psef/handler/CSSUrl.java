@@ -33,7 +33,6 @@ public class CSSUrl
     /**
      * Read the "url" part after an @import
      * @param text the text to scan
-     * @return the first char after the url or 0
      */
     public CSSUrl( String text )
     {
@@ -47,7 +46,7 @@ public class CSSUrl
             pos += token.length();
             switch ( state )
             {
-                case 0: // looking for "url"
+                case 0: // look for "url"
                     if ( token.equals("url") )
                         state = 1;
                     break;
@@ -55,21 +54,21 @@ public class CSSUrl
                     if ( token.equals("(") )
                         state = 2;
                     break;
-                case 2: // look for quotations or body
+                case 2: // look for quotations 
                     if ( token.equals("\"") || token.equals("\'") )
                         state = 3;
                     break;
-                case 3: // looking for body
+                case 3: // look for body
                     if ( token.equals("\"")||token.equals("\'") )
                         state = 4;
-                    else
+                    else    // append body
                         sb.append(token);
                     break;
-                case 4: // looking for ")"
+                case 4: // look for ")"
                     if ( token.equals(")") )
                         state = 5;
                     break;
-                case 5: // looking for ";"
+                case 5: // look for ";"
                     if ( token.equals(";")||token.equals(" ")||token.equals("\n") )
                         atEnd = true;
                     break;
@@ -96,7 +95,7 @@ public class CSSUrl
         if ( path.startsWith("http") )
             return path;
         else
-            return "http://"+host+base+path;
+            return "http://"+host+base+"/"+path;
     }
     /**
      * Revise the path component
@@ -128,13 +127,17 @@ public class CSSUrl
         }
     }
     /**
-     * Convert back into a CSS url
+     * Get the local path
      * @return a string
      */
     public String getLocalPath()
     {
         return localPath;
     }
+    /**
+     * Convert back to a url with the new path
+     * @return 
+     */
     public String toString()
     {
         return "url('"+localPath+"');";

@@ -75,7 +75,8 @@ public class ProjectGetHandler extends PsefGetHandler
                 dst.delete();
             dst.createNewFile();
             String html = new String(data,"UTF-8");
-            String filtered = new HTMLFilter(root,html,u.getPath(),u.getHost()).filter();
+            String filtered = new HTMLFilter(root,html,u.getPath(),"",
+                u.getHost()).filter();
             FileOutputStream out = new FileOutputStream(dst);
             out.write(filtered.getBytes("UTF-8"));
             out.close();
@@ -155,6 +156,7 @@ public class ProjectGetHandler extends PsefGetHandler
         GzipCompressorOutputStream gzOut=null;
         BufferedOutputStream bOut=null;
         FileOutputStream fOut=null;
+        System.out.println("Creating tarball");
         try 
         {
             File parent = root.getParentFile();

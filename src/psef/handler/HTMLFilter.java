@@ -31,20 +31,29 @@ import java.io.PrintWriter;
 import psef.exception.PsefException;
 import org.jsoup.nodes.DataNode;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.net.MalformedURLException;
+import java.security.MessageDigest;
+import org.apache.commons.codec.binary.Base64;
 /**
- * 
+ * Create a Web archive from a single web page
  */
 public class HTMLFilter 
 {
+    /** the source HTML text */
     String src;
+    /** base path within web-dir of site */
     String base;
+    /** host dns name */
     String host;
+    /**  relative path from root */
+    String relPath;
+    /** the root destination directory */
     File root;
-    HTMLFilter( File root, String src, String base, String host )
+    HTMLFilter( File root, String src, String base, String relPath, String host )
     {
         this.src = src;
         this.base = base;
+        this.relPath = relPath;
         this.host = host;
         this.root = root;
     }
@@ -58,12 +67,12 @@ public class HTMLFilter
     {
         try
         {
-            URLConnection connection = url.openConnection();
-            InputStream is = connection.getInputStream();
-            byte[] data = Utils.readStream(is);
             File dst = new File( root, path );
             if ( !dst.exists() )
             {
+                URLConnection connection = url.openConnection();
+                InputStream is = connection.getInputStream();
+                byte[] data = Utils.readStream(is);
                 File parent = dst.getParentFile();
                 if ( !parent.exists() )
                     parent.mkdirs();
@@ -78,6 +87,11 @@ public class HTMLFilter
             throw new PsefException(e);
         }
     }
+    /**
+     * Convert and download all scripts
+     * @param doc the DOM document
+     * @throws PsefException 
+     */
     private void filterScripts( Document doc ) throws PsefException
     {
         Elements scripts = doc.getElementsByTag("script");
@@ -89,7 +103,7 @@ public class HTMLFilter
                 if ( scriptSrc != null && scriptSrc.length()>0 )
                 {
                     if ( !scriptSrc.startsWith("http") )
-                        scriptSrc = "http://"+host+base+"/"+scriptSrc;
+                        scriptSrc = "http://"+host+base+relPath+"/"+scriptSrc;
                     URL url = new URL(scriptSrc);
                     if ( url.getPath().startsWith(base) )
                     {
@@ -119,13 +133,18 @@ public class HTMLFilter
         else
             return 0;
     }
+    /**
+     * Revise all "style" statements with @import directives
+     * @param doc the DOM document
+     * @throws PsefException 
+     */
     private void filterStyles( Document doc ) throws PsefException
     {
-         try
-         {
-             Elements styles = doc.getElementsByTag("style");
-             for (Element style : styles) 
-             {
+        try
+        {
+            Elements styles = doc.getElementsByTag("style");
+            for (Element style : styles) 
+            {
                 List<DataNode> data = style.dataNodes();
                 String styleText = "";
                 StringBuilder sb = new StringBuilder();
@@ -139,8 +158,8 @@ public class HTMLFilter
                         styleText = styleText.substring(pos);
                         CSSUrl cssu = new CSSUrl( styleText );
                         styleText = styleText.substring(cssu.getPos());
-                        cssu.revise(host, base, "styles" );
-                        URL u = new URL(cssu.getUrl(host,base));
+                        cssu.revise(host, base+relPath, "styles" );
+                        URL u = new URL(cssu.getUrl(host,base+relPath));
                         downloadResource(u,cssu.getLocalPath());
                         sb.append( cssu.toString() );
                         sb.append("\n");
@@ -151,18 +170,140 @@ public class HTMLFilter
                sb.append( styleText );
                //style.( sb.toString() );
             }
-         }
-         catch ( Exception e )
-         {
-             throw new PsefException( e );
-         }
+        }
+        catch ( Exception e )
+        {
+            throw new PsefException( e );
+        }
     }
+    /**
+     * Convert a relative href to an absolute one
+     * @param href a possibly relative href
+     * @return the full http:// href
+     */
+    private String cleanHref( String href )
+    {
+        if ( href.startsWith("http://") )
+            return href;
+        else
+            return "http://"+host+relPath+href;
+    }
+    /**
+     * Remove just the base element from the full path
+     * @param path a full path 
+     * @return the path relative to base
+     */
+    private String cleanPath( String path )
+    {
+        if ( path.startsWith(base) )
+            path = path.substring(base.length());
+        else
+            path = path;
+        if ( path.equals("/") )
+            path = "index.html";
+        return path;
+    }
+    /**
+     * Convert the link hrefs to their local equivalents
+     * @param doc the document
+     */
+    private void filterLinks( Document doc ) throws PsefException
+    {
+        try
+        {
+            Elements links = doc.getElementsByTag("link");
+            for (Element link : links) 
+            {
+                String type = link.attr("type");
+                String href = link.attr("href");
+                href = cleanHref(href);
+                String folder = "other";
+                if ( type.equals("text/css") )
+                    folder = "styles";
+                else if ( type.equals("text/javascript") )
+                    folder = "scripts";
+                else if ( type.startsWith("image/") )
+                    folder = "corpix";
+                URL u = new URL( href );
+                String localPath = folder+"/"+cleanPath(u.getPath());
+                downloadResource(u,localPath);
+                link.attr("href",localPath);
+            }
+        }
+        catch ( MalformedURLException e )
+        {
+            throw new PsefException(e);
+        }
+    }
+    /**
+     * Update all the anchors
+     * @param doc the DOM document
+     */
+    private void filterAnchors( Document doc ) throws PsefException
+    {
+        try
+        {
+            Elements anchors = doc.getElementsByTag("a");
+            for (Element anchor : anchors) 
+            {
+                String href = anchor.attr("href");
+                String localPath = "";
+                URL u = null;
+                if ( href.startsWith("#") )
+                    continue;
+                else if ( href.startsWith("http:") )
+                {
+                    u = new URL(href);
+                    if ( u.getHost().equals(host) && u.getPath().startsWith(base) )
+                        localPath = cleanPath(u.getPath());
+                    u = null;
+                }
+                else
+                    localPath = cleanPath(href);
+                if ( localPath.length()>0 && u == null )
+                    u = new URL(cleanHref(href));
+                if ( u != null && localPath.length()>0 )
+                {
+                    if ( !localPath.equals("index.html") )
+                    {
+                        localPath = "anchors"+localPath;
+                        String[] parts = localPath.split("\\?");
+                        if ( parts.length == 2 )
+                        {
+                            MessageDigest md = MessageDigest.getInstance("MD5");
+                            md.update(parts[1].getBytes());
+                            byte[] digest = md.digest();
+                            byte[] bytesEncoded = Base64.encodeBase64(digest);
+                            localPath = parts[0]+"_"+new String(bytesEncoded);
+                        }
+                    }
+                    downloadResource(u,localPath);
+                    anchor.attr("href",localPath);
+                }
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new PsefException(e);
+        }
+    }
+    /**
+     * Filter the entire document
+     * @return the filtered document
+     * @throws PsefException 
+     */
     public String filter() throws PsefException
     {
         Document doc = Jsoup.parse(src);
+        System.out.println("Filtering scripts");
         filterScripts( doc );
+        System.out.println("Filtering styles");
         filterStyles( doc );
-        // write converted dom to a string
+        System.out.println("Filtering links");
+        filterLinks( doc );
+        System.out.println("Filtering anchors");
+        filterAnchors( doc );
+        // write converted dom back to a string
         StringWriter sw = new StringWriter(src.length());
         PrintWriter writer = new PrintWriter(sw);
         writer.write( doc.html() ) ;
